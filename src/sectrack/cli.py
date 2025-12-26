@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]  # .../sectrack/ (project root)
 from sectrack.config import load_config
 from sectrack.db import Database
 from sectrack.models import Host
-from sectrack.export import export_rows_to_csv
+from sectrack.export import export_rows_to_csv, export_rows_to_excel
 
 
 def cmd_init_db(db: Database) -> int:
@@ -123,6 +123,20 @@ def cmd_list_findings(db: Database) -> int:
         )
     return 0
 
+def cmd_export_findings_xlsx(db: Database, export_dir: Path) -> int:
+    rows = db.query(
+        """
+        SELECT h.hostname, f.title, f.severity, f.status, f.created_at
+        FROM findings f
+        JOIN hosts h ON f.host_id = h.id
+        ORDER BY f.id ASC
+        """
+    )
+    out_path = export_dir / "findings.xlsx"
+    export_rows_to_excel((dict(r) for r in rows), out_path)
+    print(f"OK: exported to {out_path}")
+    return 0
+
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="sectrack", description="SecTrack CLI (SQLite)")
@@ -133,6 +147,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("list-hosts", help="List hosts")
     sub.add_parser("add-finding", help="Add a finding to a host")
     sub.add_parser("list-findings", help="List findings")
+    expf = sub.add_parser("export-findings", help="Export findings")
+    expf.add_argument("--xlsx", action="store_true", help="Export to data/exports/findings.xlsx")
 
     sp = sub.add_parser("search-host", help="Search hosts by term")
     sp.add_argument("term")
@@ -160,6 +176,12 @@ def main() -> int:
         return cmd_list_findings(db)
     if args.cmd == "search-host":
         return cmd_search_host(db, args.term)
+    if args.cmd == "export-findings":
+        if args.xlsx:
+            return cmd_export_findings_xlsx(db, cfg.export_dir)
+        print("Nothing to do. Use --xlsx.")
+        return 2
+
     if args.cmd == "export-hosts":
         if args.csv:
             return cmd_export_hosts_csv(db, cfg.export_dir)

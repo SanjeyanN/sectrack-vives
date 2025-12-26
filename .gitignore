@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# settings 
+settings.ini
+
+# exports 
+data/exports/*.csv
+data/exports/*.xlsx
+
+# Spyder project files
+.spyproject/

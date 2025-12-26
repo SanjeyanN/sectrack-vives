@@ -1,21 +1,25 @@
-# SecTrack (CLI) â€” SQLite mini vulnerability tracker
+# SecTrack (CLI) — SQLite mini vulnerability tracker
 
-SecTrack is a small command-line tool to track **hosts** (assets) and **security findings** in a local **SQLite** database.
-It allows adding and searching data from the terminal and exporting a report.
-
-## Purpose
-Keep an overview of systems in a lab/network and simple vulnerability notes (severity/status) in a structured way.
+SecTrack is a simple command-line tool to track hosts and security findings (vulnerabilities) in a small SQLite database.
 
 ## Features
-### Implemented (Day 1)
-- SQLite database with **2 tables**: `hosts` and `findings`
-- Initialize database schema
-- Add/list/search **hosts**
-- Export **hosts** report to **CSV**
-
-### Planned (Day 2/3)
-- Add/list/search **findings**
-- Export report to **Excel (.xlsx)**
-- Sample database with sample data
+- SQLite database with 2 tables: `hosts` and `findings`
+- Add/list/search hosts
+- Add/list findings (linked to a host)
+- Export:
+  - Hosts to CSV (`hosts.csv`)
+  - Findings to Excel (`findings.xlsx`)
+- Settings in a separate file (`settings.ini`) that is NOT committed
 
 ## Project structure
+- `src/sectrack/` : application package
+- `scripts/` : helper scripts (init/seed database)
+- `data/sample.db` : sample database with sample data (committed for grading)
+- `data/exports/` : exports folder (NOT committed)
+
+## Setup (as teacher will do)
+```bash
+python -m venv .venv
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt

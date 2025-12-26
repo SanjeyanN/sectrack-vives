@@ -102,6 +102,27 @@ def cmd_export_hosts_csv(db: Database, export_dir: Path) -> int:
     print(f"OK: exported to {out_path}")
     return 0
 
+def cmd_list_findings(db: Database) -> int:
+    rows = db.query(
+        """
+        SELECT f.id, h.hostname, f.title, f.severity, f.status, f.created_at
+        FROM findings f
+        JOIN hosts h ON f.host_id = h.id
+        ORDER BY f.id DESC
+        """
+    )
+
+    if not rows:
+        print("No findings found.")
+        return 0
+
+    for r in rows:
+        print(
+            f"[{r['id']}] {r['hostname']} | {r['title']} | "
+            f"{r['severity']} | {r['status']} | {r['created_at']}"
+        )
+    return 0
+
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="sectrack", description="SecTrack CLI (SQLite)")
@@ -111,7 +132,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("add-host", help="Add a host")
     sub.add_parser("list-hosts", help="List hosts")
     sub.add_parser("add-finding", help="Add a finding to a host")
-    
+    sub.add_parser("list-findings", help="List findings")
+
     sp = sub.add_parser("search-host", help="Search hosts by term")
     sp.add_argument("term")
 
@@ -134,6 +156,8 @@ def main() -> int:
         return cmd_add_finding(db)
     if args.cmd == "list-hosts":
         return cmd_list_hosts(db)
+    if args.cmd == "list-findings":
+        return cmd_list_findings(db)
     if args.cmd == "search-host":
         return cmd_search_host(db, args.term)
     if args.cmd == "export-hosts":

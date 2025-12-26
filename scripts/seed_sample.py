@@ -13,7 +13,7 @@ def main() -> int:
     db = Database(cfg.db_path)
     db.init_schema()
 
-    # Clear existing data (for repeatable seeding)
+    # Clear existing data (repeatable)
     db.execute("DELETE FROM findings")
     db.execute("DELETE FROM hosts")
 
@@ -26,7 +26,7 @@ def main() -> int:
     for h in hosts:
         db.execute("INSERT INTO hosts(hostname, ip, owner, notes) VALUES (?, ?, ?, ?)", h)
 
-    # Read host ids
+    # Map hostname -> id
     rows = db.query("SELECT id, hostname FROM hosts")
     ids = {r["hostname"]: r["id"] for r in rows}
 

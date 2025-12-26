@@ -17,8 +17,8 @@ SecTrack is a simple command-line tool to track hosts and security findings (vul
 - `data/sample.db` : sample database with sample data (committed for grading)
 - `data/exports/` : exports folder (NOT committed)
 
-## Setup (as teacher will do)
-```bash
+## Setup (Use this please!)
+```bash 
 python -m venv .venv
 # Windows PowerShell
 .\.venv\Scripts\Activate.ps1

@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]  # .../sectrack/ (project root)
+
 from sectrack.config import load_config
 from sectrack.db import Database
 from sectrack.models import Host
@@ -67,6 +69,31 @@ def cmd_search_host(db: Database, term: str) -> int:
         print(f"[{r['id']}] {r['hostname']}  ip={r['ip'] or '-'}  owner={r['owner'] or '-'}")
     return 0
 
+def cmd_add_finding(db: Database) -> int:
+    print("Add finding")
+    host_id = input("Host ID*: ").strip()
+    if not host_id.isdigit():
+        print("Invalid host ID")
+        return 1
+
+    title = input("Title*: ").strip()
+    severity = input("Severity (low/medium/high/critical)*: ").strip().lower()
+    if severity not in ("low", "medium", "high", "critical"):
+        print("Invalid severity")
+        return 1
+
+    status = input("Status (open/fixed/wontfix) [open]: ").strip() or "open"
+
+    db.execute(
+        """
+        INSERT INTO findings(host_id, title, severity, status, created_at)
+        VALUES (?, ?, ?, ?, date('now'))
+        """,
+        (int(host_id), title, severity, status),
+    )
+
+    print("OK: finding added.")
+    return 0
 
 def cmd_export_hosts_csv(db: Database, export_dir: Path) -> int:
     rows = db.query("SELECT id, hostname, ip, owner, notes FROM hosts ORDER BY id ASC")
@@ -83,7 +110,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("init-db", help="Create tables if missing")
     sub.add_parser("add-host", help="Add a host")
     sub.add_parser("list-hosts", help="List hosts")
-
+    sub.add_parser("add-finding", help="Add a finding to a host")
+    
     sp = sub.add_parser("search-host", help="Search hosts by term")
     sp.add_argument("term")
 
@@ -95,13 +123,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    cfg = load_config("settings.ini")
+    cfg = load_config(str(ROOT / "settings.ini"))
     db = Database(cfg.db_path)
 
     if args.cmd == "init-db":
         return cmd_init_db(db)
     if args.cmd == "add-host":
         return cmd_add_host(db)
+    if args.cmd == "add-finding":
+        return cmd_add_finding(db)
     if args.cmd == "list-hosts":
         return cmd_list_hosts(db)
     if args.cmd == "search-host":
@@ -118,3 +148,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
